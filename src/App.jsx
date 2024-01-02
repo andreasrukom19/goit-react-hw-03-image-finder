@@ -4,6 +4,7 @@ import { onDataSearch } from 'services/api';
 import Notiflix from 'notiflix';
 import { Loader } from 'components/Loader/Loader';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
+import { Button } from 'components/Button/Button';
 
 export class App extends Component {
   state = {
@@ -12,6 +13,7 @@ export class App extends Component {
     error: null,
     searchValue: '',
     page: 1,
+    loading: false
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -40,30 +42,36 @@ export class App extends Component {
     try {
       this.setState({ status: 'pending' });
       const requestData = await onDataSearch(page, searchValue);
-      this.setState({status: 'resolved'});
+      this.setState({status: 'resolved', loading: this.state.page < Math.ceil(requestData.totalHits / 12)});
       return requestData;
     } catch (error) {
       this.setState({ error: error.message, status: 'rejected' });
     }
   }
 
+  onLoadMore = () => {
+    this.setState({page: this.state.page + 1})
+  }
+
   render() {
-    const { status, dataImages, } = this.state;
+    const { status, dataImages, loading } = this.state;
+    const paramsMessage = {
+      distance: '70px',
+      fontSize: '18px',
+      width: '400px',
+      position: 'center-top'
+    };
 
     return (
       <div>
         <Searchbar onSubmit={this.onSubmitForm} />
         {status === 'rejected' && Notiflix.Notify.failure('Oops, the image cannot be loaded')}
-        {status === 'pending' && Array.isArray(dataImages) && <Loader />}
-        {Array.isArray(dataImages) && dataImages.length === 0 && Notiflix.Notify.info('Nothing was found for your request', {
-          distance: '70px',
-          fontSize: '18px',
-          width: '400px',
-          position: 'center-top'
-        })}
-        {status === 'resolved' && Array.isArray(dataImages) && 
-          <ImageGallery images={ this.state.dataImages } />
-        }
+        {Array.isArray(dataImages) && dataImages.length === 0 &&
+          Notiflix.Notify.info('Nothing was found for your request', paramsMessage)}
+        <ImageGallery images={this.state.dataImages} />
+        {status === 'pending' && <Loader />}
+        {Array.isArray(dataImages) && dataImages.length > 0 && loading &&
+          <Button onLoadMore={this.onLoadMore} />}
       </div>
     )
   }
