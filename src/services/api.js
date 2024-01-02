@@ -14,5 +14,5 @@ export const onDataSearch = async (currentPage, searchQuery) => {
       per_page: 12,
     }
   });
-  return data.hits;
+  return data;
 }
