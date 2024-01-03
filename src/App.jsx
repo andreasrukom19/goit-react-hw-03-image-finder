@@ -5,6 +5,7 @@ import Notiflix from 'notiflix';
 import { Loader } from 'components/Loader/Loader';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { Button } from 'components/Button/Button';
+import { Modal } from 'components/Modal/Modal';
 
 export class App extends Component {
   state = {
@@ -13,7 +14,9 @@ export class App extends Component {
     error: null,
     searchValue: '',
     page: 1,
-    loading: false
+    loading: false,
+    isOpenModal: false,
+    modalData: null
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -53,8 +56,20 @@ export class App extends Component {
     this.setState({page: this.state.page + 1})
   }
 
+  handleShowImage = selectId => {
+    const selectedImg = this.state.dataImages.find(image => image.id === selectId);
+    this.setState({
+      isOpenModal: true,
+      modalData: selectedImg
+    })
+  }
+
+  handleCloseModal = () => {
+    this.setState({ isOpenModal: false });
+  }
+
   render() {
-    const { status, dataImages, loading } = this.state;
+    const { status, dataImages, loading, isOpenModal, modalData, } = this.state;
     const paramsMessage = {
       distance: '70px',
       fontSize: '18px',
@@ -68,10 +83,11 @@ export class App extends Component {
         {status === 'rejected' && Notiflix.Notify.failure('Oops, the image cannot be loaded')}
         {Array.isArray(dataImages) && dataImages.length === 0 &&
           Notiflix.Notify.info('Nothing was found for your request', paramsMessage)}
-        <ImageGallery images={this.state.dataImages} />
+        <ImageGallery images={this.state.dataImages} handleShowImage={this.handleShowImage} />
         {status === 'pending' && <Loader />}
         {Array.isArray(dataImages) && dataImages.length > 0 && loading &&
           <Button onLoadMore={this.onLoadMore} />}
+        {isOpenModal && <Modal modalData={ modalData } handleCloseModal={this.handleCloseModal} />}
       </div>
     )
   }
