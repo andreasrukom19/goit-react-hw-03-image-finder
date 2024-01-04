@@ -32,7 +32,8 @@ export class App extends Component {
 
   onSubmitForm = formData => {
     if (formData.inputValue === this.state.searchValue) {
-      Notiflix.Notify.warning('You are making a similar request!')
+      Notiflix.Notify.warning('You are making a similar request!');
+      return;
     }
     this.setState({
       searchValue: formData.inputValue,
